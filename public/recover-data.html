@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Recovery Tool</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 { color: #6366f1; }
+        h2 { color: #4f46e5; margin-top: 30px; }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #e5e7eb;
+        }
+        .status {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+        .warning { background: #fef3c7; color: #92400e; }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover { background: #4f46e5; }
+        .danger { background: #dc2626; }
+        .danger:hover { background: #b91c1c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 FairShare Data Recovery Tool</h1>
+        <p>This tool helps you check and recover your expense data.</p>
+        
+        <div id="status"></div>
+        
+        <h2>📊 Current Storage Status</h2>
+        <div id="storage-info"></div>
+        
+        <h2>🔍 All LocalStorage Keys</h2>
+        <div id="all-keys"></div>
+        
+        <h2>💾 Actions</h2>
+        <button onclick="migrateOldData()">Migrate Old Data</button>
+        <button onclick="viewAllData()">View All Data</button>
+        <button onclick="exportBackup()">Export Backup</button>
+        <button class="danger" onclick="clearAll()">Clear All Data</button>
+    </div>
+    
+    <script>
+        function checkStorage() {
+            const statusDiv = document.getElementById('status');
+            const storageDiv = document.getElementById('storage-info');
+            const keysDiv = document.getElementById('all-keys');
+            
+            // Check for new format
+            const newGroups = localStorage.getItem('expenseGroups');
+            const activeId = localStorage.getItem('activeGroupId');
+            
+            // Check for old format
+            const oldGroup = localStorage.getItem('expenseGroup');
+            
+            let statusHTML = '';
+            let storageHTML = '';
+            
+            if (newGroups) {
+                const groups = JSON.parse(newGroups);
+                statusHTML = `<div class="status success">✅ Found ${groups.length} group(s) in new format</div>`;
+                storageHTML += `<h3>New Format (expenseGroups):</h3><pre>${JSON.stringify(groups, null, 2)}</pre>`;
+            } else if (oldGroup) {
+                statusHTML = `<div class="status warning">⚠️ Found old format data - needs migration</div>`;
+                storageHTML += `<h3>Old Format (expenseGroup):</h3><pre>${JSON.stringify(JSON.parse(oldGroup), null, 2)}</pre>`;
+            } else {
+                statusHTML = `<div class="status error">❌ No data found</div>`;
+            }
+            
+            if (activeId) {
+                storageHTML += `<h3>Active Group ID:</h3><pre>${activeId}</pre>`;
+            }
+            
+            // List all keys
+            let keysHTML = '<ul>';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                keysHTML += `<li><strong>${key}</strong>: ${value ? value.substring(0, 100) + '...' : 'empty'}</li>`;
+            }
+            keysHTML += '</ul>';
+            
+            statusDiv.innerHTML = statusHTML;
+            storageDiv.innerHTML = storageHTML;
+            keysDiv.innerHTML = keysHTML;
+        }
+        
+        function migrateOldData() {
+            const oldGroup = localStorage.getItem('expenseGroup');
+            if (!oldGroup) {
+                alert('No old data found to migrate');
+                return;
+            }
+            
+            try {
+                const parsedOldGroup = JSON.parse(oldGroup);
+                const newGroups = [parsedOldGroup];
+                
+                localStorage.setItem('expenseGroups', JSON.stringify(newGroups));
+                localStorage.setItem('activeGroupId', parsedOldGroup.id);
+                localStorage.removeItem('expenseGroup');
+                
+                alert('✅ Migration successful! Reload the app to see your data.');
+                checkStorage();
+            } catch (error) {
+                alert('❌ Migration failed: ' + error.message);
+            }
+        }
+        
+        function viewAllData() {
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                data[key] = localStorage.getItem(key);
+            }
+            console.log('All localStorage data:', data);
+            alert('Check the browser console (F12) to see all data');
+        }
+        
+        function exportBackup() {
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                data[key] = localStorage.getItem(key);
+            }
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `fairshare_backup_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function clearAll() {
+            if (confirm('⚠️ Are you sure? This will delete ALL data!')) {
+                if (confirm('⚠️ Really sure? This cannot be undone!')) {
+                    localStorage.clear();
+                    alert('All data cleared');
+                    checkStorage();
+                }
+            }
+        }
+        
+        // Run check on load
+        checkStorage();
+    </script>
+</body>
+</html>
