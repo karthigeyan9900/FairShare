@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Group, Expense, ExpenseSplit, SplitType } from '../types/app';
+import { getCurrencySymbol } from '../utils/currency';
 
 interface AddExpenseProps {
   group: Group;
@@ -151,7 +152,7 @@ export default function AddExpense({ group, onAdd, onCancel, existingExpense }: 
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Amount (VND) *
+                Amount ({group.currency}) *
               </label>
               <input
                 type="number"
@@ -224,7 +225,7 @@ export default function AddExpense({ group, onAdd, onCancel, existingExpense }: 
           <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
             <h3 className="text-lg font-semibold mb-4 text-blue-900">Multiple Payers Contribution</h3>
             <p className="text-sm text-blue-700 mb-4">
-              Enter how much each payer contributes. Total must equal {amount || '0'} VND
+              Enter how much each payer contributes. Total must equal {getCurrencySymbol(group.currency)}{amount || '0'}
             </p>
             
             <div className="space-y-3">
@@ -237,7 +238,7 @@ export default function AddExpense({ group, onAdd, onCancel, existingExpense }: 
                   placeholder="0"
                   className="w-40 px-3 py-2 border rounded-md"
                 />
-                <span className="text-sm text-gray-500">VND</span>
+                <span className="text-sm text-gray-500">{group.currency}</span>
               </div>
               
               {group.members.map(member => (
@@ -250,7 +251,7 @@ export default function AddExpense({ group, onAdd, onCancel, existingExpense }: 
                     placeholder="0"
                     className="w-40 px-3 py-2 border rounded-md"
                   />
-                  <span className="text-sm text-gray-500">VND</span>
+                  <span className="text-sm text-gray-500">{group.currency}</span>
                 </div>
               ))}
             </div>
@@ -263,12 +264,12 @@ export default function AddExpense({ group, onAdd, onCancel, existingExpense }: 
                     ? 'text-green-600'
                     : 'text-red-600'
                 }`}>
-                  {Object.values(multiplePayments).reduce((sum, val) => sum + (parseFloat(val) || 0), 0).toLocaleString()} VND
+                  {getCurrencySymbol(group.currency)}{Object.values(multiplePayments).reduce((sum, val) => sum + (parseFloat(val) || 0), 0).toLocaleString()}
                 </span>
               </div>
               {amount && Math.abs(Object.values(multiplePayments).reduce((sum, val) => sum + (parseFloat(val) || 0), 0) - parseFloat(amount)) > 0.01 && (
                 <p className="text-sm text-red-600 mt-2">
-                  ⚠️ Total must equal {parseFloat(amount).toLocaleString()} VND
+                  ⚠️ Total must equal {getCurrencySymbol(group.currency)}{parseFloat(amount).toLocaleString()}
                 </p>
               )}
             </div>

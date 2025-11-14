@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Group, Member } from '../types/app';
+import { currencyConfig, type Currency } from '../utils/currency';
 
 interface GroupSetupProps {
   onGroupCreated: (group: Group) => void;
@@ -8,6 +9,7 @@ interface GroupSetupProps {
 export default function GroupSetup({ onGroupCreated }: GroupSetupProps) {
   const [groupName, setGroupName] = useState('');
   const [groupIcon, setGroupIcon] = useState('✈️');
+  const [currency, setCurrency] = useState<Currency>('USD');
   const [memberName, setMemberName] = useState('');
   const [members, setMembers] = useState<Member[]>([]);
 
@@ -41,6 +43,7 @@ export default function GroupSetup({ onGroupCreated }: GroupSetupProps) {
       id: Date.now().toString(),
       name: groupName.trim(),
       icon: groupIcon,
+      currency,
       members,
       locker: {
         totalAmount: 0,
@@ -87,6 +90,23 @@ export default function GroupSetup({ onGroupCreated }: GroupSetupProps) {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Currency
+            </label>
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value as Currency)}
+              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+            >
+              {Object.entries(currencyConfig).map(([code, config]) => (
+                <option key={code} value={code}>
+                  {config.symbol} {config.name} ({code})
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

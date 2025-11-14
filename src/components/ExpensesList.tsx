@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Group, Expense } from '../types/app';
 import AddExpense from './AddExpense';
+import { formatCurrency } from '../utils/currency';
 
 interface ExpensesListProps {
   group: Group;
@@ -145,7 +146,7 @@ export default function ExpensesList({ group, onUpdate }: ExpensesListProps) {
                       <p className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                         {expense.amount.toLocaleString()}
                       </p>
-                      <p className="text-xs text-gray-500 font-medium">VND</p>
+                      <p className="text-xs text-gray-500 font-medium">{group.currency}</p>
                     </div>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                       expandedExpense === expense.id 
@@ -198,7 +199,7 @@ export default function ExpensesList({ group, onUpdate }: ExpensesListProps) {
                                 {payment.payerId === 'locker' ? '🔒 Cash Locker' : getMemberName(payment.payerId)}
                               </span>
                               <span className="text-sm font-bold text-green-700">
-                                +{payment.amount.toLocaleString()} VND
+                                +{formatCurrency(payment.amount, group.currency)}
                               </span>
                             </div>
                           ))
@@ -206,7 +207,7 @@ export default function ExpensesList({ group, onUpdate }: ExpensesListProps) {
                           <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                             <span className="text-sm font-medium">{getPaidByLabel(expense)}</span>
                             <span className="text-sm font-bold text-green-700">
-                              +{expense.amount.toLocaleString()} VND
+                              +{formatCurrency(expense.amount, group.currency)}
                             </span>
                           </div>
                         )}
@@ -227,7 +228,7 @@ export default function ExpensesList({ group, onUpdate }: ExpensesListProps) {
                             </span>
                             <div className="text-right">
                               <span className="text-sm font-bold text-red-700">
-                                -{split.amount.toLocaleString()} VND
+                                -{formatCurrency(split.amount, group.currency)}
                               </span>
                               {split.ratio && (
                                 <span className="text-xs text-gray-500 block">
@@ -246,7 +247,7 @@ export default function ExpensesList({ group, onUpdate }: ExpensesListProps) {
                       <div className="mt-3 pt-3 border-t flex justify-between items-center">
                         <span className="font-semibold text-gray-700">Total:</span>
                         <span className="font-bold text-gray-900">
-                          {expense.splits.reduce((sum, s) => sum + s.amount, 0).toLocaleString()} VND
+                          {formatCurrency(expense.splits.reduce((sum, s) => sum + s.amount, 0), group.currency)}
                         </span>
                       </div>
                     </div>

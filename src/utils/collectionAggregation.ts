@@ -99,6 +99,7 @@ export const calculateCollectionStats = (
       groupId: group.id,
       groupName: group.name,
       groupIcon: group.icon,
+      currency: group.currency,
       totalExpenses: groupTotal,
       expenseCount: group.expenses.length,
       percentage: 0, // Calculate after loop
@@ -155,6 +156,7 @@ export const getCombinedExpenses = (
         groupId: group.id,
         groupName: group.name,
         groupIcon: group.icon,
+        currency: group.currency,
       });
     });
   });
@@ -281,6 +283,7 @@ export const getGroupContributions = (
       groupId: group.id,
       groupName: group.name,
       groupIcon: group.icon,
+      currency: group.currency,
       totalExpenses: groupTotal,
       expenseCount: group.expenses.length,
       percentage: 0, // Calculate in second pass

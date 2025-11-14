@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Group, Deposit } from '../types/app';
+import { formatCurrency } from '../utils/currency';
 
 interface LockerManagerProps {
   group: Group;
@@ -139,19 +140,19 @@ export default function LockerManager({ group, onUpdate }: LockerManagerProps) {
           <div className="bg-blue-50 rounded-lg p-4">
             <h3 className="text-sm font-medium text-blue-700">Total Deposited</h3>
             <p className="text-2xl font-bold text-blue-900 mt-1">
-              {group.locker.totalAmount.toLocaleString()} VND
+              {formatCurrency(group.locker.totalAmount, group.currency)}
             </p>
           </div>
           <div className="bg-red-50 rounded-lg p-4">
             <h3 className="text-sm font-medium text-red-700">Total Withdrawn</h3>
             <p className="text-2xl font-bold text-red-900 mt-1">
-              {totalWithdrawn.toLocaleString()} VND
+              {formatCurrency(totalWithdrawn, group.currency)}
             </p>
           </div>
           <div className="bg-green-50 rounded-lg p-4">
             <h3 className="text-sm font-medium text-green-700">Remaining</h3>
             <p className="text-2xl font-bold text-green-900 mt-1">
-              {remaining.toLocaleString()} VND
+              {formatCurrency(remaining, group.currency)}
             </p>
           </div>
         </div>
@@ -180,7 +181,7 @@ export default function LockerManager({ group, onUpdate }: LockerManagerProps) {
             </div>
             {commonPoolAmount && (
               <p className="text-sm text-gray-600 mt-2">
-                Each person will get: {(parseFloat(commonPoolAmount) / group.members.length).toLocaleString()} VND
+                Each person will get: {formatCurrency(parseFloat(commonPoolAmount) / group.members.length, group.currency)}
               </p>
             )}
           </div>
@@ -264,7 +265,7 @@ export default function LockerManager({ group, onUpdate }: LockerManagerProps) {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-semibold text-green-600">
-                    +{deposit.amount.toLocaleString()} VND
+                    +{formatCurrency(deposit.amount, group.currency)}
                   </span>
                   <button
                     onClick={() => deleteDeposit(deposit.id)}

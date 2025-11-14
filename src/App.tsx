@@ -6,6 +6,11 @@ import ExpensesList from './components/ExpensesList';
 import SummaryDashboard from './components/SummaryDashboard';
 import Login from './components/Login';
 import GroupIconEditor from './components/GroupIconEditor';
+import CollectionsList from './components/CollectionsList';
+import CreateCollection from './components/CreateCollection';
+import CollectionDashboard from './components/CollectionDashboard';
+import CurrencyRatesDisplay from './components/CurrencyRatesDisplay';
+import GroupCurrencyEditor from './components/GroupCurrencyEditor';
 
 function AppNew() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
@@ -18,6 +23,7 @@ function AppNew() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [activeCollectionId, setActiveCollectionId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'groups' | 'collections'>('groups');
+  const [showCreateCollection, setShowCreateCollection] = useState(false);
 
   const activeGroup = groups.find(g => g.id === activeGroupId) || null;
   const activeCollection = collections.find(c => c.id === activeCollectionId) || null;
@@ -85,11 +91,16 @@ function AppNew() {
     
     if (saved) {
       const loadedGroups = JSON.parse(saved);
-      setGroups(loadedGroups);
-      if (savedActiveId && loadedGroups.find((g: Group) => g.id === savedActiveId)) {
+      // Migration: Add currency field to groups that don't have it
+      const migratedGroups = loadedGroups.map((g: Group) => ({
+        ...g,
+        currency: g.currency || 'USD' // Default to USD if no currency
+      }));
+      setGroups(migratedGroups);
+      if (savedActiveId && migratedGroups.find((g: Group) => g.id === savedActiveId)) {
         setActiveGroupId(savedActiveId);
-      } else if (loadedGroups.length > 0) {
-        setActiveGroupId(loadedGroups[0].id);
+      } else if (migratedGroups.length > 0) {
+        setActiveGroupId(migratedGroups[0].id);
       }
     } else {
       setGroups([]);
@@ -206,6 +217,27 @@ function AppNew() {
     if (activeCollectionId === collectionId) {
       setActiveCollectionId(updatedCollections.length > 0 ? updatedCollections[0].id : null);
     }
+  };
+
+  // Navigation handlers
+  const switchToCollectionsView = () => {
+    setViewMode('collections');
+    setActiveTab('expenses'); // Reset tab when switching views
+  };
+
+  const switchToGroupsView = () => {
+    setViewMode('groups');
+  };
+
+  const openCollection = (collectionId: string) => {
+    setActiveCollectionId(collectionId);
+    setViewMode('collections');
+  };
+
+  const openGroup = (groupId: string) => {
+    setActiveGroupId(groupId);
+    setViewMode('groups');
+    setShowGroupSelector(false);
   };
 
   const exportData = () => {
@@ -447,20 +479,39 @@ function AppNew() {
         {/* Navigation */}
         <nav className="flex-1 px-6 py-4 space-y-3">
           <button
-            onClick={() => setActiveTab('summary')}
+            onClick={switchToCollectionsView}
             className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-semibold ${
-              activeTab === 'summary'
+              viewMode === 'collections'
                 ? 'bg-white text-purple-600 shadow-xl'
                 : 'text-white/80 hover:bg-white/10 hover:text-white'
             }`}
           >
             <span className="text-2xl">📊</span>
+            <span className="text-base">Collections</span>
+            {collections.length > 0 && (
+              <span className="ml-auto bg-white/20 px-2 py-0.5 rounded-full text-xs">
+                {collections.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('summary')}
+            className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-semibold ${
+              activeTab === 'summary' && viewMode === 'groups'
+                ? 'bg-white text-purple-600 shadow-xl'
+                : 'text-white/80 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            <span className="text-2xl">📈</span>
             <span className="text-base">Dashboard</span>
           </button>
           <button
-            onClick={() => setActiveTab('expenses')}
+            onClick={() => {
+              setActiveTab('expenses');
+              setViewMode('groups');
+            }}
             className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-semibold ${
-              activeTab === 'expenses'
+              activeTab === 'expenses' && viewMode === 'groups'
                 ? 'bg-white text-purple-600 shadow-xl'
                 : 'text-white/80 hover:bg-white/10 hover:text-white'
             }`}
@@ -469,9 +520,12 @@ function AppNew() {
             <span className="text-base">Expenses</span>
           </button>
           <button
-            onClick={() => setActiveTab('locker')}
+            onClick={() => {
+              setActiveTab('locker');
+              setViewMode('groups');
+            }}
             className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-semibold ${
-              activeTab === 'locker'
+              activeTab === 'locker' && viewMode === 'groups'
                 ? 'bg-white text-purple-600 shadow-xl'
                 : 'text-white/80 hover:bg-white/10 hover:text-white'
             }`}
@@ -542,6 +596,7 @@ function AppNew() {
               <p className="text-sm text-gray-500 mt-1">{activeGroup.members.length} members in this group</p>
             </div>
             <div className="flex items-center gap-4">
+              <GroupCurrencyEditor group={activeGroup} onUpdate={handleGroupUpdate} />
               <GroupIconEditor group={activeGroup} onUpdate={handleGroupUpdate} />
             </div>
           </div>
@@ -549,17 +604,59 @@ function AppNew() {
 
         {/* Content Area */}
         <main className="flex-1 overflow-auto p-10 bg-gradient-to-br from-gray-50 to-gray-100">
-          {activeTab === 'expenses' && (
-            <ExpensesList group={activeGroup} onUpdate={handleGroupUpdate} />
+          {/* Currency Rates Display */}
+          <CurrencyRatesDisplay />
+          
+          {viewMode === 'groups' && (
+            <>
+              {activeTab === 'expenses' && (
+                <ExpensesList group={activeGroup} onUpdate={handleGroupUpdate} />
+              )}
+              {activeTab === 'locker' && (
+                <LockerManager group={activeGroup} onUpdate={handleGroupUpdate} />
+              )}
+              {activeTab === 'summary' && (
+                <SummaryDashboard group={activeGroup} />
+              )}
+            </>
           )}
-          {activeTab === 'locker' && (
-            <LockerManager group={activeGroup} onUpdate={handleGroupUpdate} />
+          {viewMode === 'collections' && !activeCollectionId && (
+            <CollectionsList
+              collections={collections}
+              groups={groups}
+              onSelectCollection={openCollection}
+              onCreateCollection={() => setShowCreateCollection(true)}
+              onDeleteCollection={handleDeleteCollection}
+            />
           )}
-          {activeTab === 'summary' && (
-            <SummaryDashboard group={activeGroup} />
+          {viewMode === 'collections' && activeCollectionId && activeCollection && (
+            <CollectionDashboard
+              collection={activeCollection}
+              groups={groups}
+              onNavigateToGroup={openGroup}
+              onEditCollection={() => setShowCreateCollection(true)}
+              onBack={() => setActiveCollectionId(null)}
+            />
           )}
         </main>
       </div>
+
+      {/* Create/Edit Collection Modal */}
+      {showCreateCollection && (
+        <CreateCollection
+          groups={groups}
+          existingCollection={activeCollectionId && activeCollection ? activeCollection : undefined}
+          onSave={(collection) => {
+            if (activeCollectionId) {
+              handleUpdateCollection(collection);
+            } else {
+              handleCreateCollection(collection);
+            }
+            setShowCreateCollection(false);
+          }}
+          onCancel={() => setShowCreateCollection(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import type { Group } from '../types/app';
+import { formatCurrency } from '../utils/currency';
 
 interface SummaryDashboardProps {
   group: Group;
@@ -137,19 +138,19 @@ export default function SummaryDashboard({ group }: SummaryDashboardProps) {
         <div className="bg-blue-50 rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-blue-700">Total Budget</h3>
           <p className="text-2xl font-bold text-blue-900 mt-2">
-            {(stats.totalBudget || 0).toLocaleString()} VND
+            {formatCurrency(stats.totalBudget || 0, group.currency)}
           </p>
         </div>
         <div className="bg-purple-50 rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-purple-700">Total Consumed</h3>
           <p className="text-2xl font-bold text-purple-900 mt-2">
-            {(stats.totalConsumed || 0).toLocaleString()} VND
+            {formatCurrency(stats.totalConsumed || 0, group.currency)}
           </p>
         </div>
         <div className="bg-green-50 rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-green-700">Locker Balance</h3>
           <p className="text-2xl font-bold text-green-900 mt-2">
-            {((stats.lockerDeposited || 0) - (stats.lockerWithdrawn || 0)).toLocaleString()} VND
+            {formatCurrency((stats.lockerDeposited || 0) - (stats.lockerWithdrawn || 0), group.currency)}
           </p>
         </div>
         <div className="bg-orange-50 rounded-lg shadow p-6">
@@ -168,7 +169,7 @@ export default function SummaryDashboard({ group }: SummaryDashboardProps) {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis />
-            <Tooltip formatter={(value: number) => value.toLocaleString() + ' VND'} />
+            <Tooltip formatter={(value: number) => formatCurrency(value, group.currency)} />
             <Legend />
             <Bar dataKey="budget" fill="#3B82F6" name="Budget" />
             <Bar dataKey="consumed" fill="#EF4444" name="Consumed" />
@@ -194,21 +195,21 @@ export default function SummaryDashboard({ group }: SummaryDashboardProps) {
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Budget:</span>
-                  <span className="font-semibold">{(member.budget || 0).toLocaleString()} VND</span>
+                  <span className="font-semibold">{formatCurrency(member.budget || 0, group.currency)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Consumed:</span>
-                  <span className="font-semibold text-red-600">{(member.consumed || 0).toLocaleString()} VND</span>
+                  <span className="font-semibold text-red-600">{formatCurrency(member.consumed || 0, group.currency)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Remaining:</span>
                   <span className={`font-semibold ${member.isOverBudget ? 'text-red-600' : 'text-green-600'}`}>
-                    {(member.remaining || 0).toLocaleString()} VND
+                    {formatCurrency(member.remaining || 0, group.currency)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Paid Personally:</span>
-                  <span className="font-semibold text-blue-600">{(member.personallyPaid || 0).toLocaleString()} VND</span>
+                  <span className="font-semibold text-blue-600">{formatCurrency(member.personallyPaid || 0, group.currency)}</span>
                 </div>
               </div>
 
@@ -259,7 +260,7 @@ export default function SummaryDashboard({ group }: SummaryDashboardProps) {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => value.toLocaleString() + ' VND'} />
+                <Tooltip formatter={(value: number) => formatCurrency(value, group.currency)} />
               </PieChart>
             </ResponsiveContainer>
 
@@ -273,7 +274,7 @@ export default function SummaryDashboard({ group }: SummaryDashboardProps) {
                     />
                     <span className="font-medium">{cat.name}</span>
                   </div>
-                  <span className="font-semibold">{cat.value.toLocaleString()} VND</span>
+                  <span className="font-semibold">{formatCurrency(cat.value, group.currency)}</span>
                 </div>
               ))}
             </div>

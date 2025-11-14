@@ -1,7 +1,10 @@
+import type { Currency } from '../utils/currency';
+
 export interface Group {
   id: string;
   name: string;
   icon?: string; // Emoji icon for the group
+  currency: Currency;
   members: Member[];
   locker: Locker;
   expenses: Expense[];
@@ -78,6 +81,7 @@ export interface GroupContribution {
   groupId: string;
   groupName: string;
   groupIcon?: string;
+  currency: Currency;
   totalExpenses: number;
   expenseCount: number;
   percentage: number; // Percentage of collection total
@@ -103,4 +107,5 @@ export interface CombinedExpense extends Expense {
   groupId: string;
   groupName: string;
   groupIcon?: string;
+  currency: Currency;
 }
